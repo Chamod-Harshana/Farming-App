@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../app/theme/app_colors.dart';
 import '../utils/language_controller.dart';
+import 'animated_pressable.dart';
 
 /// Reusable Custom Top Navigation Bar displaying Govi Mithuru official logo
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -62,46 +63,53 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             },
           ),
 
-          // 3. Right side: Language Switcher Box (සිං | EN)
+          // 3. Right side: Language Switcher Box (සිං | EN) with Animated Press Feedback
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 12),
-              child: GestureDetector(
+              child: AnimatedPressable(
+                pressedScale: 0.90,
                 onTap: () {
                   LanguageController.instance.toggleLanguage();
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                   decoration: BoxDecoration(
                     color: AppColors.darkPill,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.white.withAlpha(76)),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.white.withAlpha(90), width: 1.2),
                     boxShadow: const [
                       BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 3,
-                        offset: Offset(0, 1),
+                        color: Colors.black26,
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
                       ),
                     ],
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        isSinhala ? 'සිං' : 'EN',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                    child: Row(
+                      key: ValueKey<bool>(isSinhala),
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          isSinhala ? 'සිං' : 'EN',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 13,
+                            letterSpacing: 0.5,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(
-                        Icons.swap_horiz,
-                        color: Colors.white,
-                        size: 16,
-                      ),
-                    ],
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.swap_horiz,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
