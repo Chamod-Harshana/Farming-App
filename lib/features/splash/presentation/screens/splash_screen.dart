@@ -47,9 +47,9 @@ class _SplashScreenState extends State<SplashScreen> {
               children: [
                 // 1. Stationary Rectangle with Traveling White Gap along perimeter
                 const LogoLoadingIndicator(
-                  logoSize: 80.0,
-                  boxWidth: 180.0,
-                  boxHeight: 110.0,
+                  logoSize: 130.0,
+                  boxWidth: 160.0,
+                  boxHeight: 80.0,
                   strokeWidth: 4.5,
                   gapColor: Colors.white,
                 ),
