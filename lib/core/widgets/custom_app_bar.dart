@@ -42,7 +42,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           // 2. Center: Official "Govi Mithuru" Logo Image (Does not change on language switch)
           title: Image.asset(
             'assets/images/logo.png',
-            height: 38,
+            height: 75,
             fit: BoxFit.contain,
             errorBuilder: (context, error, stackTrace) {
               return Row(
