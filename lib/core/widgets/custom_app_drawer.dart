@@ -36,19 +36,17 @@ class CustomAppDrawer extends StatelessWidget {
                   style: TextStyle(color: Colors.white.withAlpha(200)),
                 ),
                 currentAccountPicture: Container(
-                  padding: const EdgeInsets.all(4),
+                  padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    shape: BoxShape.circle,
+                    borderRadius: BorderRadius.circular(16),
                     boxShadow: const [
                       BoxShadow(color: Colors.black26, blurRadius: 4),
                     ],
                   ),
-                  child: ClipOval(
-                    child: Image.asset(
-                      'assets/images/logo.png',
-                      fit: BoxFit.cover,
-                    ),
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    fit: BoxFit.contain,
                   ),
                 ),
               ),
