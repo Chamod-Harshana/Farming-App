@@ -5,7 +5,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/utils/language_controller.dart';
 import '../../../../core/widgets/logo_loading_indicator.dart';
 
-/// App Splash Screen displaying custom Govi Mithuru rotating logo loading animation
+/// App Splash Screen displaying custom Govi Mithuru stationary rectangle with traveling white gap animation
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -45,14 +45,16 @@ class _SplashScreenState extends State<SplashScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // 1. Custom Rotating Gap Square Logo Animation
+                // 1. Stationary Rectangle with Traveling White Gap along perimeter
                 const LogoLoadingIndicator(
-                  logoSize: 85.0,
-                  boxSize: 145.0,
-                  strokeWidth: 4.0,
+                  logoSize: 80.0,
+                  boxWidth: 180.0,
+                  boxHeight: 110.0,
+                  strokeWidth: 4.5,
+                  gapColor: Colors.white,
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 36),
 
                 // 2. Loading Subtitle / Welcome Text
                 Text(

@@ -1,32 +1,48 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../app/theme/app_colors.dart';
 
-/// Custom Loading Indicator featuring the Govi Mithuru logo in the center
-/// surrounded by a continuously rotating rounded square border with a small gap.
+/// Custom Loading Indicator featuring:
+/// - A STATIONARY (non-rotating) rounded rectangle surrounding the Govi Mithuru logo.
+/// - A white/light gap segment that travels continuously ALONG the perimeter of the rectangle.
 class LogoLoadingIndicator extends StatefulWidget {
-  /// Controls the size of the central logo (width & height)
+  /// Size of the central logo
   final double logoSize;
 
-  /// Controls the outer dimension of the rotating square box
-  final double boxSize;
+  /// Width of the stationary rectangle
+  final double boxWidth;
 
-  /// Thickness of the rotating box border
+  /// Height of the stationary rectangle
+  final double boxHeight;
+
+  /// Thickness of the rectangle border
   final double strokeWidth;
 
-  /// Color of the rotating border
-  final Color borderColor;
+  /// Corner radius of the stationary rectangle
+  final double borderRadius;
 
-  /// Speed of full 360 rotation
-  final Duration rotationDuration;
+  /// Main color of the stationary rectangle border
+  final Color rectColor;
+
+  /// Color of the traveling gap / highlight segment
+  final Color gapColor;
+
+  /// Length of the gap as a percentage of the total perimeter (e.g. 0.22 = 22%)
+  final double gapPercentage;
+
+  /// Time taken for the gap to complete 1 full loop around the rectangle
+  final Duration duration;
 
   const LogoLoadingIndicator({
     super.key,
     this.logoSize = 75.0,
-    this.boxSize = 135.0,
-    this.strokeWidth = 3.5,
-    this.borderColor = AppColors.darkPill,
-    this.rotationDuration = const Duration(milliseconds: 1400),
+    this.boxWidth = 170.0,
+    this.boxHeight = 105.0,
+    this.strokeWidth = 4.0,
+    this.borderRadius = 22.0,
+    this.rectColor = AppColors.darkPill,
+    this.gapColor = Colors.white,
+    this.gapPercentage = 0.22,
+    this.duration = const Duration(milliseconds: 1800),
   });
 
   @override
@@ -42,7 +58,7 @@ class _LogoLoadingIndicatorState extends State<LogoLoadingIndicator>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: widget.rotationDuration,
+      duration: widget.duration,
     )..repeat();
   }
 
@@ -55,29 +71,30 @@ class _LogoLoadingIndicatorState extends State<LogoLoadingIndicator>
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: widget.boxSize,
-      height: widget.boxSize,
+      width: widget.boxWidth,
+      height: widget.boxHeight,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // 1. Continuously Rotating Rounded Square Border with Gap
+          // 1. Stationary Rounded Rectangle with Traveling White Gap along perimeter
           AnimatedBuilder(
             animation: _controller,
             builder: (context, child) {
-              return Transform.rotate(
-                angle: _controller.value * 2 * math.pi,
-                child: CustomPaint(
-                  size: Size(widget.boxSize, widget.boxSize),
-                  painter: _GapSquarePainter(
-                    strokeWidth: widget.strokeWidth,
-                    color: widget.borderColor,
-                  ),
+              return CustomPaint(
+                size: Size(widget.boxWidth, widget.boxHeight),
+                painter: _TravelingGapRectanglePainter(
+                  progress: _controller.value,
+                  strokeWidth: widget.strokeWidth,
+                  borderRadius: widget.borderRadius,
+                  rectColor: widget.rectColor,
+                  gapColor: widget.gapColor,
+                  gapPercentage: widget.gapPercentage,
                 ),
               );
             },
           ),
 
-          // 2. Central Logo Image
+          // 2. Central Govi Mithuru Logo (Stationary)
           Image.asset(
             'assets/images/logo.png',
             width: widget.logoSize,
@@ -97,44 +114,82 @@ class _LogoLoadingIndicatorState extends State<LogoLoadingIndicator>
   }
 }
 
-/// Custom Painter drawing a rounded square path with a small gap
-class _GapSquarePainter extends CustomPainter {
+/// Custom Painter that draws a stationary rounded rectangle and animates a white gap moving along its edges
+class _TravelingGapRectanglePainter extends CustomPainter {
+  final double progress;
   final double strokeWidth;
-  final Color color;
+  final double borderRadius;
+  final Color rectColor;
+  final Color gapColor;
+  final double gapPercentage;
 
-  _GapSquarePainter({required this.strokeWidth, required this.color});
+  _TravelingGapRectanglePainter({
+    required this.progress,
+    required this.strokeWidth,
+    required this.borderRadius,
+    required this.rectColor,
+    required this.gapColor,
+    required this.gapPercentage,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = color
+    // Outer bounds with stroke inset
+    final Rect rect = Rect.fromLTWH(
+      strokeWidth / 2,
+      strokeWidth / 2,
+      size.width - strokeWidth,
+      size.height - strokeWidth,
+    );
+
+    final RRect rrect = RRect.fromRectAndRadius(
+      rect,
+      Radius.circular(borderRadius),
+    );
+
+    final Path fullPath = Path()..addRRect(rrect);
+
+    // 1. Draw the Base Stationary Rectangle Border
+    final Paint basePaint = Paint()
+      ..color = rectColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
 
-    final RRect rrect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(
-        strokeWidth / 2,
-        strokeWidth / 2,
-        size.width - strokeWidth,
-        size.height - strokeWidth,
-      ),
-      const Radius.circular(24),
-    );
+    canvas.drawPath(fullPath, basePaint);
 
-    final Path path = Path()..addRRect(rrect);
+    // 2. Draw the White Gap Traveling ALONG the Stationary Rectangle Perimeter
+    final Paint gapPaint = Paint()
+      ..color = gapColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth + 0.5 // slightly thicker highlight
+      ..strokeCap = StrokeCap.round;
 
-    // Extract path metrics to draw 82% of the square, leaving an 18% gap
-    for (final metric in path.computeMetrics()) {
+    for (final metric in fullPath.computeMetrics()) {
       final double totalLength = metric.length;
-      final double extractLength = totalLength * 0.82; // 82% drawn, 18% gap
-      final Path extractPath = metric.extractPath(0, extractLength);
-      canvas.drawPath(extractPath, paint);
+      final double gapLength = totalLength * gapPercentage;
+      final double startDistance = progress * totalLength;
+      final double endDistance = startDistance + gapLength;
+
+      if (endDistance <= totalLength) {
+        // Gap is within single continuous path segment
+        final Path gapPath = metric.extractPath(startDistance, endDistance);
+        canvas.drawPath(gapPath, gapPaint);
+      } else {
+        // Gap wraps around the end of the perimeter back to the start
+        final Path gapPath1 = metric.extractPath(startDistance, totalLength);
+        final Path gapPath2 = metric.extractPath(0, endDistance - totalLength);
+        canvas.drawPath(gapPath1, gapPaint);
+        canvas.drawPath(gapPath2, gapPaint);
+      }
     }
   }
 
   @override
-  bool shouldRepaint(covariant _GapSquarePainter oldDelegate) {
-    return oldDelegate.color != color || oldDelegate.strokeWidth != strokeWidth;
+  bool shouldRepaint(covariant _TravelingGapRectanglePainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.rectColor != rectColor ||
+        oldDelegate.gapColor != gapColor ||
+        oldDelegate.strokeWidth != strokeWidth;
   }
 }

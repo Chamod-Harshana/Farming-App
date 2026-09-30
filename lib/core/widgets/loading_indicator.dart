@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'logo_loading_indicator.dart';
 
-/// Reusable center loading indicator featuring Govi Mithuru custom rotating box animation
+/// Reusable center loading indicator featuring Govi Mithuru stationary rectangle with traveling gap animation
 class LoadingIndicator extends StatelessWidget {
   final String? message;
   final double logoSize;
-  final double boxSize;
+  final double boxWidth;
+  final double boxHeight;
 
   const LoadingIndicator({
     super.key,
     this.message,
     this.logoSize = 75.0,
-    this.boxSize = 135.0,
+    this.boxWidth = 170.0,
+    this.boxHeight = 105.0,
   });
 
   @override
@@ -22,7 +24,8 @@ class LoadingIndicator extends StatelessWidget {
         children: [
           LogoLoadingIndicator(
             logoSize: logoSize,
-            boxSize: boxSize,
+            boxWidth: boxWidth,
+            boxHeight: boxHeight,
           ),
           if (message != null) ...[
             const SizedBox(height: 20),
