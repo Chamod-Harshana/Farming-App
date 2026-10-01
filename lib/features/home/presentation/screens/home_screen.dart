@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../app/routes/route_names.dart';
 import '../../../../core/utils/language_controller.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_app_drawer.dart';
@@ -39,7 +40,7 @@ class HomeScreen extends StatelessWidget {
                 AnimatedPressable(
                   pressedScale: 0.95,
                   onTap: () {
-                    // Navigate to My Crops
+                    Navigator.pushNamed(context, RouteNames.myCrops);
                   },
                   child: _buildStackedFeatureCard(
                     title: LanguageController.instance.getText('my_crops'),

@@ -78,6 +78,14 @@ class LanguageController extends ValueNotifier<String> {
         'si': 'මඳ වශයෙන් වලාකුළු සහිතයි',
         'en': 'Partly Cloudy',
       },
+      'notifications': {
+        'si': 'දැනුම්දීම්',
+        'en': 'Notifications',
+      },
+      'notifications_desc': {
+        'si': 'කාලගුණ සහ වගා අවවාද',
+        'en': 'Weather and farming alerts',
+      },
     };
 
     return localizedValues[key]?[value] ?? key;

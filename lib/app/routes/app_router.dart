@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
+import '../../features/crops/presentation/screens/my_crops_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
 import 'route_names.dart';
@@ -15,6 +16,8 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const SplashScreen());
       case RouteNames.home:
         return MaterialPageRoute(builder: (_) => const HomeScreen());
+      case RouteNames.myCrops:
+        return MaterialPageRoute(builder: (_) => const MyCropsScreen());
       case RouteNames.login:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
       case RouteNames.profile:

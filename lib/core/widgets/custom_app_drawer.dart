@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../app/routes/route_names.dart';
 import '../../app/theme/app_colors.dart';
+import '../../features/notifications/presentation/widgets/notifications_modal.dart';
 import '../utils/language_controller.dart';
 
 /// Navigation Drawer with options: Home, My Crops, Articles & Guides, Chat, About Us, Contact Us, Language Switcher
@@ -75,6 +76,18 @@ class CustomAppDrawer extends StatelessWidget {
                       ),
                       onTap: () {
                         Navigator.pop(context);
+                        Navigator.pushNamed(context, RouteNames.myCrops);
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.notifications_rounded, color: Colors.amber),
+                      title: Text(
+                        LanguageController.instance.getText('notifications'),
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        NotificationsModal.show(context);
                       },
                     ),
                     ListTile(

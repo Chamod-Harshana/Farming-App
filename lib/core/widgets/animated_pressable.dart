@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 class AnimatedPressable extends StatefulWidget {
   final Widget child;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
   final double pressedScale;
   final Duration duration;
 
@@ -12,6 +13,7 @@ class AnimatedPressable extends StatefulWidget {
     super.key,
     required this.child,
     required this.onTap,
+    this.onLongPress,
     this.pressedScale = 0.96,
     this.duration = const Duration(milliseconds: 120),
   });
@@ -31,6 +33,12 @@ class _AnimatedPressableState extends State<AnimatedPressable> {
         setState(() => _isPressed = false);
         widget.onTap();
       },
+      onLongPress: widget.onLongPress != null
+          ? () {
+              setState(() => _isPressed = false);
+              widget.onLongPress!();
+            }
+          : null,
       onTapCancel: () => setState(() => _isPressed = false),
       child: AnimatedScale(
         scale: _isPressed ? widget.pressedScale : 1.0,
