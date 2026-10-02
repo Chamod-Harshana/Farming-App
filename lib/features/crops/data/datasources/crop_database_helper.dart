@@ -7,19 +7,22 @@ import '../../domain/models/crop_model.dart';
 import '../../domain/models/fertilizer_log_model.dart';
 import '../../domain/models/pesticide_log_model.dart';
 import '../../domain/models/financial_record_model.dart';
+import '../../domain/models/irrigation_log_model.dart';
 
 /// Lightweight Offline Local Database Helper
-/// Manages SQLite local storage for crops, fertilizer logs, pesticide logs, and financial records.
+/// Manages SQLite local storage for crops, irrigation logs, fertilizer logs, pesticide logs, and financial records.
 class CropDatabaseHelper {
   static final CropDatabaseHelper instance = CropDatabaseHelper._internal();
   CropDatabaseHelper._internal();
 
   static const String _tableName = 'crops';
+  static const String _irrigationTable = 'irrigation_logs';
   static const String _fertilizerTable = 'fertilizer_logs';
   static const String _pesticideTable = 'pesticide_logs';
   static const String _financialTable = 'financial_records';
 
   static const String _prefsKey = 'offline_user_crops_v1';
+  static const String _irrigPrefsKey = 'offline_irrigation_logs_v1';
   static const String _fertPrefsKey = 'offline_fertilizer_logs_v1';
   static const String _pestPrefsKey = 'offline_pesticide_logs_v1';
   static const String _finPrefsKey = 'offline_financial_records_v1';
@@ -32,15 +35,15 @@ class CropDatabaseHelper {
     try {
       if (!kIsWeb) {
         final dbPath = await sqlite.getDatabasesPath();
-        final path = p.join(dbPath, 'farming_app_v2.db');
+        final path = p.join(dbPath, 'farming_app_v3.db');
         _db = await sqlite.openDatabase(
           path,
-          version: 2,
+          version: 3,
           onCreate: (db, version) async {
             await _createTables(db);
           },
           onUpgrade: (db, oldVersion, newVersion) async {
-            if (oldVersion < 2) {
+            if (oldVersion < 3) {
               await _createTables(db);
             }
           },
@@ -76,6 +79,19 @@ class CropDatabaseHelper {
         landSize TEXT,
         plantCount INTEGER,
         notes TEXT
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS $_irrigationTable (
+        id TEXT PRIMARY KEY,
+        crop_id TEXT,
+        date TEXT,
+        time TEXT,
+        amount TEXT,
+        method TEXT,
+        next_date TEXT,
+        notify INTEGER
       )
     ''');
 
@@ -275,7 +291,81 @@ class CropDatabaseHelper {
   }
 
   // ==========================================
-  // 2. FERTILIZER LOGS CRUD
+  // 2. IRRIGATION LOGS CRUD
+  // ==========================================
+  Future<List<IrrigationLogModel>> getIrrigationLogs(String cropId) async {
+    List<IrrigationLogModel> list = [];
+    if (_db != null) {
+      try {
+        final maps = await _db!.query(
+          _irrigationTable,
+          where: 'crop_id = ?',
+          whereArgs: [cropId],
+          orderBy: 'date DESC',
+        );
+        list = maps.map((m) => IrrigationLogModel.fromMap(m)).toList();
+      } catch (e) {
+        debugPrint('SQLite irrig query error: $e');
+      }
+    }
+
+    if (list.isEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      final String? jsonStr = prefs.getString('${_irrigPrefsKey}_$cropId');
+      if (jsonStr != null && jsonStr.isNotEmpty) {
+        final List<dynamic> raw = json.decode(jsonStr);
+        list = raw.map((e) => IrrigationLogModel.fromMap(e)).toList();
+      }
+    }
+    return list;
+  }
+
+  Future<void> insertIrrigationLog(IrrigationLogModel log) async {
+    if (_db != null) {
+      try {
+        await _db!.insert(
+          _irrigationTable,
+          log.toMap(),
+          conflictAlgorithm: sqlite.ConflictAlgorithm.replace,
+        );
+      } catch (e) {
+        debugPrint('SQLite irrig insert error: $e');
+      }
+    }
+
+    final list = await getIrrigationLogs(log.cropId);
+    list.removeWhere((item) => item.id == log.id);
+    list.add(log);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      '${_irrigPrefsKey}_${log.cropId}',
+      json.encode(list.map((e) => e.toMap()).toList()),
+    );
+  }
+
+  Future<void> deleteIrrigationLog(String cropId, String logId) async {
+    if (_db != null) {
+      try {
+        await _db!.delete(
+          _irrigationTable,
+          where: 'id = ?',
+          whereArgs: [logId],
+        );
+      } catch (e) {
+        debugPrint('SQLite irrig delete error: $e');
+      }
+    }
+    final list = await getIrrigationLogs(cropId);
+    list.removeWhere((item) => item.id == logId);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      '${_irrigPrefsKey}_$cropId',
+      json.encode(list.map((e) => e.toMap()).toList()),
+    );
+  }
+
+  // ==========================================
+  // 3. FERTILIZER LOGS CRUD
   // ==========================================
   Future<List<FertilizerLogModel>> getFertilizerLogs(String cropId) async {
     List<FertilizerLogModel> list = [];
@@ -327,8 +417,29 @@ class CropDatabaseHelper {
     );
   }
 
+  Future<void> deleteFertilizerLog(String cropId, String logId) async {
+    if (_db != null) {
+      try {
+        await _db!.delete(
+          _fertilizerTable,
+          where: 'id = ?',
+          whereArgs: [logId],
+        );
+      } catch (e) {
+        debugPrint('SQLite fert delete error: $e');
+      }
+    }
+    final list = await getFertilizerLogs(cropId);
+    list.removeWhere((item) => item.id == logId);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      '${_fertPrefsKey}_$cropId',
+      json.encode(list.map((e) => e.toMap()).toList()),
+    );
+  }
+
   // ==========================================
-  // 3. PESTICIDE LOGS CRUD
+  // 4. PESTICIDE LOGS CRUD
   // ==========================================
   Future<List<PesticideLogModel>> getPesticideLogs(String cropId) async {
     List<PesticideLogModel> list = [];
@@ -380,8 +491,29 @@ class CropDatabaseHelper {
     );
   }
 
+  Future<void> deletePesticideLog(String cropId, String logId) async {
+    if (_db != null) {
+      try {
+        await _db!.delete(
+          _pesticideTable,
+          where: 'id = ?',
+          whereArgs: [logId],
+        );
+      } catch (e) {
+        debugPrint('SQLite pest delete error: $e');
+      }
+    }
+    final list = await getPesticideLogs(cropId);
+    list.removeWhere((item) => item.id == logId);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      '${_pestPrefsKey}_$cropId',
+      json.encode(list.map((e) => e.toMap()).toList()),
+    );
+  }
+
   // ==========================================
-  // 4. FINANCIAL RECORDS CRUD
+  // 5. FINANCIAL RECORDS CRUD
   // ==========================================
   Future<List<FinancialRecordModel>> getFinancialRecords(String cropId) async {
     List<FinancialRecordModel> list = [];
@@ -429,6 +561,27 @@ class CropDatabaseHelper {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(
       '${_finPrefsKey}_${record.cropId}',
+      json.encode(list.map((e) => e.toMap()).toList()),
+    );
+  }
+
+  Future<void> deleteFinancialRecord(String cropId, String recordId) async {
+    if (_db != null) {
+      try {
+        await _db!.delete(
+          _financialTable,
+          where: 'id = ?',
+          whereArgs: [recordId],
+        );
+      } catch (e) {
+        debugPrint('SQLite fin delete error: $e');
+      }
+    }
+    final list = await getFinancialRecords(cropId);
+    list.removeWhere((item) => item.id == recordId);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      '${_finPrefsKey}_$cropId',
       json.encode(list.map((e) => e.toMap()).toList()),
     );
   }
