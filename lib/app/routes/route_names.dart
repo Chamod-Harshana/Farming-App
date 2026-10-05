@@ -7,5 +7,6 @@ class RouteNames {
   static const String home = '/home';
   static const String profile = '/profile';
   static const String myCrops = '/my-crops';
+  static const String chat = '/chat';
 }
 

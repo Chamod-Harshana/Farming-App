@@ -72,7 +72,7 @@ class HomeScreen extends StatelessWidget {
                 AnimatedPressable(
                   pressedScale: 0.95,
                   onTap: () {
-                    // Navigate to AI Chat
+                    Navigator.pushNamed(context, RouteNames.chat);
                   },
                   child: _buildStackedFeatureCard(
                     title: LanguageController.instance.getText('chat'),
