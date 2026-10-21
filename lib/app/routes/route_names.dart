@@ -8,5 +8,6 @@ class RouteNames {
   static const String profile = '/profile';
   static const String myCrops = '/my-crops';
   static const String chat = '/chat';
+  static const String articles = '/articles';
 }
 

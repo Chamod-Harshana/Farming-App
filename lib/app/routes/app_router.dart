@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../features/articles/presentation/screens/articles_list_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/crops/presentation/screens/my_crops_screen.dart';
@@ -21,6 +22,8 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const MyCropsScreen());
       case RouteNames.chat:
         return MaterialPageRoute(builder: (_) => const ChatScreen());
+      case RouteNames.articles:
+        return MaterialPageRoute(builder: (_) => const ArticlesListScreen());
       case RouteNames.login:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
       case RouteNames.profile:

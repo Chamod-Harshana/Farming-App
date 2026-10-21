@@ -98,6 +98,7 @@ class CustomAppDrawer extends StatelessWidget {
                       ),
                       onTap: () {
                         Navigator.pop(context);
+                        Navigator.pushNamed(context, RouteNames.articles);
                       },
                     ),
                     ListTile(
@@ -108,6 +109,7 @@ class CustomAppDrawer extends StatelessWidget {
                       ),
                       onTap: () {
                         Navigator.pop(context);
+                        Navigator.pushNamed(context, RouteNames.chat);
                       },
                     ),
                     const Divider(indent: 16, endIndent: 16),

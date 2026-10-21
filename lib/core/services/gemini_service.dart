@@ -8,27 +8,39 @@ class GeminiService {
     defaultValue: 'AQ.' 'Ab8RN6JVRuPuvXbDzcFUh3RBEElR2NGM0-howzalRXpdCkeM4Q',
   );
 
-  // Primary active model for new Google AI Studio projects
+  // Fast, lightweight models prioritized for responsive real-time chat (< 3s response)
   static const List<String> _modelCandidates = [
-    'gemini-3.8-flash',
-    'gemini-3.7-flash',
-    'gemini-3.6-flash',
+    'gemini-3.5-flash-lite',
+    'gemini-3.1-flash-lite',
     'gemini-3.5-flash',
+    'gemini-3.8-flash',
     'gemini-flash-latest',
-    'gemini-pro-latest',
   ];
 
-  String? _workingModelName;
+  static String? _workingModelName;
+
+  static final _generationConfig = GenerationConfig(
+    maxOutputTokens: 3000,
+    temperature: 0.7,
+  );
 
   static const String _systemPrompt = 
     '[SYSTEM INSTRUCTION FOR GOVI AI]:\n'
     'You are "Govi AI" (ගොවි AI), an expert Sri Lankan Agricultural and Farming Advisor.\n'
+    'CRITICAL CONTENT & DETAIL REQUIREMENTS:\n'
+    '1. Always provide a COMPREHENSIVE, IN-DEPTH, FULLY DETAILED, and STEP-BY-STEP response. NEVER give brief or overly short summaries. Farmers need complete and thorough practical guidance.\n'
+    '2. For diseases, pests, fertilizers, cultivation practices, and crop issues, structure your detailed answer into clear sections:\n'
+    '   - 📌 ගැටලුවට හේතු සහ රෝග ලක්ෂණ (Causes & Symptoms)\n'
+    '   - 🌾 ක්ෂණිකව කළ යුතු පිළියම් (Immediate Remedies)\n'
+    '   - 🧪 කාබනික සහ ස්වභාවික පාලන ක්‍රම (Organic & Natural Methods)\n'
+    '   - 🛡️ රසායනික පාලන ක්‍රම සහ මාත්‍රාවන් (Chemical Controls & Recommended Dosages)\n'
+    '   - 💡 අනාගතයේදී රෝගය වළක්වා ගැනීමට වැදගත් උපදෙස් (Long-term Prevention & Tips)\n'
     'CRITICAL FORMATTING RULES FOR YOUR RESPONSE:\n'
     '1. DO NOT use markdown symbols like "*", "**", "#", "##", "###", or "---" anywhere in your text.\n'
     '2. Use relevant, colorful Emojis (🌾, 🌱, 🐛, 🧪, 💧, ☀️, 📌, 🔹, 💡, 🛡️) to highlight headings and bullet points.\n'
-    '3. Format headings clearly using emojis and uppercase/bold-like plain text (e.g., "🌱 1. කාබනික සහ දේශීය පිළියම්:").\n'
+    '3. Format headings clearly using emojis and clean plain text.\n'
     '4. Use "🔹" or "•" for list items instead of asterisks.\n'
-    '5. Keep the language natural, polite, encouraging, and clear for Sri Lankan farmers.\n\n'
+    '5. Keep the language natural, polite, encouraging, practical, and clear for Sri Lankan farmers in Sinhala (or English if the user writes in English).\n\n'
     'User Question: ';
 
   /// Cleans raw markdown symbols (#, *, ---) from AI response text
@@ -62,7 +74,11 @@ class GeminiService {
     // 1. Try previously working model if available
     if (_workingModelName != null) {
       try {
-        final model = GenerativeModel(model: _workingModelName!, apiKey: _apiKey);
+        final model = GenerativeModel(
+          model: _workingModelName!,
+          apiKey: _apiKey,
+          generationConfig: _generationConfig,
+        );
         final response = await model.generateContent([Content.text(fullPrompt)]);
         if (response.text != null && response.text!.trim().isNotEmpty) {
           return _formatResponseText(response.text!);
@@ -76,7 +92,11 @@ class GeminiService {
     String lastErrorMessage = '';
     for (final modelName in _modelCandidates) {
       try {
-        final model = GenerativeModel(model: modelName, apiKey: _apiKey);
+        final model = GenerativeModel(
+          model: modelName,
+          apiKey: _apiKey,
+          generationConfig: _generationConfig,
+        );
         final response = await model.generateContent([Content.text(fullPrompt)]);
         
         if (response.text != null && response.text!.trim().isNotEmpty) {
@@ -102,7 +122,11 @@ class GeminiService {
 
     for (final modelName in modelsToTry) {
       try {
-        final model = GenerativeModel(model: modelName, apiKey: _apiKey);
+        final model = GenerativeModel(
+          model: modelName,
+          apiKey: _apiKey,
+          generationConfig: _generationConfig,
+        );
         final content = Content.multi([
           TextPart('$_systemPrompt$promptText'),
           DataPart('image/jpeg', imageBytes),

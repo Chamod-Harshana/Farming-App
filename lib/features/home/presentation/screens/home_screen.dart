@@ -56,7 +56,7 @@ class HomeScreen extends StatelessWidget {
                 AnimatedPressable(
                   pressedScale: 0.95,
                   onTap: () {
-                    // Navigate to Articles & Guides
+                    Navigator.pushNamed(context, RouteNames.articles);
                   },
                   child: _buildStackedFeatureCard(
                     title: LanguageController.instance.getText('articles'),
